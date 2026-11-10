@@ -1,10 +1,17 @@
-use gpui::{AnyView, App, Context, Window, WindowAppearance, div, prelude::*, rgb};
+use gpui::{AnyView, App, Context, Subscription, Window, WindowAppearance, div, prelude::*, rgb};
 
-pub fn create(_window: &mut Window, cx: &mut App) -> AnyView {
-    cx.new(|_| Home).into()
+pub fn create(window: &mut Window, cx: &mut App) -> AnyView {
+    cx.new(|cx| Home {
+        _appearance_subscription: cx.observe_window_appearance(window, |_, window, _| {
+            window.refresh();
+        }),
+    })
+    .into()
 }
 
-struct Home;
+struct Home {
+    _appearance_subscription: Subscription,
+}
 
 impl Render for Home {
     fn render(&mut self, window: &mut Window, _cx: &mut Context<Self>) -> impl IntoElement {
