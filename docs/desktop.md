@@ -1,6 +1,14 @@
 # Minimal Desktop Design
 
-This is a design, not an implemented app. Build a single GPUI app in `apps/desktop`, targeting macOS first. The initial scope covers a window, panel display, and panel lifecycle management. The editor, storage, CloudKit, agents, CLI/MCP, and JS runtime are subsequent features.
+The scaffold in `apps/desktop` is a single GPUI app targeting macOS first. It opens one window, mounts one built-in panel, and exits when the last window closes or the user quits. The editor, storage, CloudKit, agents, CLI/MCP, and JS runtime are subsequent features.
+
+## Implemented boundary
+
+`App` configures the window, menus, and shutdown behavior. `Workspace` retains an `AnyView` created by the `PanelFactory` registered as `panels::DEFAULT_PANEL`. The built-in Home panel owns its rendering and follows the system appearance. The factory accepts the window and app context so later panels can create their own GPUI entities without exposing their concrete types to Workspace.
+
+The dependency is the official `gpui` crate pinned to `0.2.2`, with resolved dependencies committed in the root lockfile. GPUI Kit and its script runtime are not dependencies. Their current release line uses a different GPUI package/version; adopting them requires an explicit compatibility decision rather than mixing the two into this scaffold.
+
+There is no dynamic registry, panel switching, background task, or persistence yet. The contracts below are the target for those additions; the first scaffold deliberately implements only a single factory slot. Run and verification commands are in the [README](../README.md#development).
 
 ## Usage contract
 
@@ -35,7 +43,7 @@ Panel tasks must not block GPUI's UI execution. When asynchronous queries are in
 
 ## File layout
 
-This is the expected layout for the first implementation. Create files as their responsibilities are implemented.
+The scaffold uses this layout:
 
 ```text
 apps/desktop/
@@ -43,10 +51,10 @@ apps/desktop/
 └── src/
     ├── main.rs         # Entry point
     ├── app.rs          # Window and dependency composition
-    ├── workspace.rs    # Registration, instances, active state, and lifecycle
+    ├── workspace.rs    # Retained panel view and window close action
     └── panels/
-        ├── mod.rs      # Small shared panel contract
-        └── …           # Individual built-in panels
+        ├── mod.rs      # Panel factory type and default registration
+        └── home.rs     # Built-in Home panel
 ```
 
 Do not create a crate for every feature. Keep registrations in one place rather than maintaining a duplicate command list. Do not introduce a general-purpose event bus, service container, empty platform adapters, or separate daemon initially. Keep Workspace internals private to its module and allow panel mutations only through open, activate, and close operations.
@@ -61,7 +69,7 @@ Implement a window and one built-in panel first, then a second panel using the s
 
 ## Verification plan
 
-These checks are planned for implementation and have not been run.
+The following checks cover the planned panel-management behavior and have not been run. The current scaffold requires a real macOS launch, appearance and resize inspection, and verification of titlebar close, `Cmd-W`, and `Cmd-Q`; no automated behavioral suite exists yet.
 
 - Switch between two built-in panels and verify state preservation and focus changes. Confirm that adding a panel requires only its implementation and registration, without modifying existing panels.
 - Confirm that duplicate registration, unknown kinds, and creation failures do not change open panels or active state.

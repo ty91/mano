@@ -1,16 +1,16 @@
 # Architecture
 
-Mano is a local-first note-taking app combining Markdown documents, structured properties and database views, and agent-built extensions. The project is in the design phase; the structure below describes the intended implementation.
+Mano is a local-first note-taking app combining Markdown documents, structured properties and database views, and agent-built extensions. A minimal desktop scaffold is implemented; the broader system below remains the intended design.
 
 ## Start with a small desktop app
 
-Start with a single Rust/GPUI app in `apps/desktop`, targeting macOS first. The initial scope covers a window and panel display, switching, and lifecycle management.
+The single Rust/GPUI app in `apps/desktop` targets macOS first. It currently opens one window and mounts one built-in panel through a factory. Panel switching and a dynamic registry are deferred until additional panels need them.
 
 - **App:** Application startup and shutdown, window creation, and dependency wiring.
 - **Workspace:** Panel registration, open instances, active state, and opening and closing panels.
 - **Panel:** Its own view state, focus, subscriptions, and tasks.
 
-Built-in panels use the same registration path. JS plugins can later connect through an adapter at this boundary. Closing a panel cleans up its tasks and prevents late results from being applied.
+The current registration point is `panels::DEFAULT_PANEL`, a factory returning GPUI's `AnyView`; Workspace does not depend on the concrete panel. The responsibilities listed above describe the intended expansion. JS plugins can later connect through an adapter at this boundary. When panel tasks are introduced, closing a panel must clean them up and prevent late results from being applied.
 
 ## Data and extension boundaries
 

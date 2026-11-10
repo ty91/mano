@@ -4,7 +4,7 @@
 
 Mano is a local-first note-taking app combining Markdown documents with Notion-style properties, relations, and database views. Document content remains continuous Markdown text; the storage model does not divide it into independently editable blocks.
 
-This is an initial design, not an implemented system. The first target platforms are macOS and iOS.
+The desktop window scaffold is implemented. The remaining system described here is an initial design. The first target platforms are macOS and iOS.
 
 The initial implementation follows the [minimal desktop design](desktop.md). Start with a single app in `apps/desktop` and extract the shared packages and integrations below when actual consumers need them.
 
