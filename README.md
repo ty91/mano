@@ -1,7 +1,9 @@
 # Mano
 
-마크다운의 자유로운 글쓰기와 데이터베이스 뷰를 결합하는 로컬 우선 노트 앱입니다. Mac과 iPhone 사이의 iCloud 동기화, 로컬 에이전트 연동, 에이전트가 만드는 UI와 플러그인을 지향합니다.
+A local-first note-taking app that combines free-form Markdown writing with database views. Mano aims to support iCloud sync between Mac and iPhone, local agent integration, and agent-built interfaces and plugins.
 
-현재는 설계 단계이며, 이 모노레포에서 앱과 공통 코어를 함께 개발합니다.
+The project is currently in the design phase. This monorepo will contain the apps and their shared core.
 
-- [아키텍처와 폴더 구조](docs/architecture.md)
+- [Architecture overview](ARCHITECTURE.md)
+- [System design and repository layout](docs/architecture.md)
+- [Minimal desktop design](docs/desktop.md)
