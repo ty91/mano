@@ -4,7 +4,9 @@ The scaffold in `apps/desktop` is a single GPUI app targeting macOS first. It op
 
 ## Implemented boundary
 
-`App` configures the window, menus, and shutdown behavior. `Workspace` retains an `AnyView` created by the `PanelFactory` registered as `panels::DEFAULT_PANEL`. The built-in Home panel owns its rendering and follows the system appearance. The factory accepts the window and app context so later panels can create their own GPUI entities without exposing their concrete types to Workspace.
+`App` configures the window, menus, shutdown behavior, and the embedded asset source. The window uses a transparent titlebar so the sidebar extends under the traffic lights. `Workspace` lays out a fixed-width sidebar beside an `AnyView` created by the `PanelFactory` registered as `panels::DEFAULT_PANEL`, and refreshes the window when the system appearance changes. Views read their colors from `Theme::of(window)`.
+
+The sidebar renders a static list of sections and entries. Selecting an entry and expanding or collapsing a folder change only sidebar state; entries do not open panels yet. Icons are Lucide SVGs embedded at compile time from `assets/icons`, which also holds their license. The factory accepts the window and app context so later panels can create their own GPUI entities without exposing their concrete types to Workspace.
 
 The dependency is the official `gpui` crate pinned to `0.2.2`, with resolved dependencies committed in the root lockfile. GPUI Kit and its script runtime are not dependencies. Their current release line uses a different GPUI package/version; adopting them requires an explicit compatibility decision rather than mixing the two into this scaffold.
 
@@ -48,10 +50,14 @@ The scaffold uses this layout:
 ```text
 apps/desktop/
 ├── Cargo.toml
+├── assets/icons/       # Embedded Lucide SVG icons and license
 └── src/
     ├── main.rs         # Entry point
     ├── app.rs          # Window and dependency composition
-    ├── workspace.rs    # Retained panel view and window close action
+    ├── assets.rs       # Embedded asset source and icon names
+    ├── theme.rs        # Appearance-dependent colors
+    ├── workspace.rs    # Sidebar and panel layout, window close action
+    ├── sidebar.rs      # Static navigation sidebar
     └── panels/
         ├── mod.rs      # Panel factory type and default registration
         └── home.rs     # Built-in Home panel

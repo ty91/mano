@@ -2,7 +2,7 @@
 
 A local-first note-taking app that combines free-form Markdown writing with database views. Mano aims to support iCloud sync between Mac and iPhone, local agent integration, and agent-built interfaces and plugins.
 
-The desktop scaffold opens a GPUI window with one built-in panel. Note editing, storage, synchronization, agents, and plugins are planned. This monorepo contains the app and will host its shared core as additional consumers need it.
+The desktop scaffold opens a GPUI window with a static navigation sidebar and one built-in panel. Note editing, storage, synchronization, agents, and plugins are planned. This monorepo contains the app and will host its shared core as additional consumers need it.
 
 ## Development
 

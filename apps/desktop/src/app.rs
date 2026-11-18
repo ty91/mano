@@ -1,14 +1,14 @@
 use gpui::{
     App, AppContext, Application, Bounds, KeyBinding, Menu, MenuItem, TitlebarOptions,
-    WindowBounds, WindowOptions, actions, px, size,
+    WindowBounds, WindowOptions, actions, point, px, size,
 };
 
-use crate::{panels, workspace::Workspace};
+use crate::{assets::Assets, panels, workspace::Workspace};
 
 actions!(mano, [Quit, CloseWindow]);
 
 pub fn run() {
-    Application::new().run(|cx: &mut App| {
+    Application::new().with_assets(Assets).run(|cx: &mut App| {
         cx.bind_keys([
             KeyBinding::new("cmd-q", Quit, None),
             KeyBinding::new("cmd-w", CloseWindow, None),
@@ -32,7 +32,8 @@ pub fn run() {
                 window_min_size: Some(size(px(480.0), px(320.0))),
                 titlebar: Some(TitlebarOptions {
                     title: Some("Mano".into()),
-                    ..Default::default()
+                    appears_transparent: true,
+                    traffic_light_position: Some(point(px(14.0), px(14.0))),
                 }),
                 ..Default::default()
             },

@@ -4,7 +4,7 @@ Mano is a local-first note-taking app combining Markdown documents, structured p
 
 ## Start with a small desktop app
 
-The single Rust/GPUI app in `apps/desktop` targets macOS first. It currently opens one window and mounts one built-in panel through a factory. Panel switching and a dynamic registry are deferred until additional panels need them.
+The single Rust/GPUI app in `apps/desktop` targets macOS first. It currently opens one window with a static sidebar and mounts one built-in panel through a factory. Panel switching and a dynamic registry are deferred until additional panels need them.
 
 - **App:** Application startup and shutdown, window creation, and dependency wiring.
 - **Workspace:** Panel registration, open instances, active state, and opening and closing panels.
