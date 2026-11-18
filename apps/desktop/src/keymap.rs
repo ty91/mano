@@ -24,6 +24,11 @@ pub const DEFAULT_BINDINGS: &[Binding<'static>] = &[
         action: "workspace::CloseTab",
         context: Some("Workspace"),
     },
+    Binding {
+        keystrokes: "escape",
+        action: "menu::Dismiss",
+        context: Some("Menu"),
+    },
 ];
 
 pub fn load(bindings: &[Binding], cx: &App) -> Result<Vec<KeyBinding>> {

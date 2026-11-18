@@ -179,7 +179,7 @@ impl Render for Workspace {
 
 #[cfg(test)]
 mod tests {
-    use gpui::{TestAppContext, VisualTestContext, WindowHandle};
+    use gpui::{Modifiers, TestAppContext, VisualTestContext, WindowHandle, point, px};
 
     use super::*;
     use crate::{keymap, panels};
@@ -254,5 +254,54 @@ mod tests {
         cx.simulate_keystrokes("cmd-t cmd-w cmd-w");
         cx.run_until_parked();
         assert!(cx.windows().is_empty());
+    }
+
+    fn new_menu_state(
+        window: &WindowHandle<Workspace>,
+        cx: &mut VisualTestContext,
+    ) -> (bool, bool) {
+        window
+            .update(cx, |workspace, window, cx| {
+                (
+                    workspace.sidebar.read(cx).is_new_menu_open(),
+                    workspace.focus_handle.is_focused(window),
+                )
+            })
+            .unwrap()
+    }
+
+    #[gpui::test]
+    fn new_menu_opens_from_the_sidebar_and_returns_focus(cx: &mut TestAppContext) {
+        let (window, mut cx) = open(cx);
+        let button = cx.debug_bounds("sidebar-new").unwrap().center();
+        let closed = (false, true);
+        let open = (true, false);
+
+        cx.simulate_click(button, Modifiers::none());
+        assert_eq!(new_menu_state(&window, &mut cx), open);
+        let menu = cx.debug_bounds("new-menu").unwrap();
+        assert_eq!(
+            menu.origin.y,
+            cx.debug_bounds("sidebar-new").unwrap().bottom() + px(4.0)
+        );
+        assert!(cx.debug_bounds("new-menu-folder").is_some());
+        cx.simulate_keystrokes("escape");
+        assert_eq!(new_menu_state(&window, &mut cx), closed);
+
+        cx.simulate_click(button, Modifiers::none());
+        let note = cx.debug_bounds("new-menu-note").unwrap().center();
+        cx.simulate_click(note, Modifiers::none());
+        assert_eq!(new_menu_state(&window, &mut cx), closed);
+
+        cx.simulate_click(button, Modifiers::none());
+        cx.simulate_click(point(px(700.0), px(400.0)), Modifiers::none());
+        assert_eq!(new_menu_state(&window, &mut cx), closed);
+
+        cx.simulate_click(button, Modifiers::none());
+        cx.simulate_click(button, Modifiers::none());
+        assert_eq!(new_menu_state(&window, &mut cx), closed);
+
+        cx.simulate_keystrokes("cmd-t");
+        assert_eq!(tab_ids(&window, &mut cx).len(), 2);
     }
 }

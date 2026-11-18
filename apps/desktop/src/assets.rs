@@ -30,6 +30,7 @@ icons! {
     BookOpen => "book-open",
     Calendar => "calendar",
     Feather => "feather",
+    File => "file",
     Folder => "folder",
     FolderOpen => "folder-open",
     Image => "image",

@@ -10,13 +10,15 @@ Each tab holds a `Panel`, a title plus an `AnyView`, created by the `PanelFactor
 
 `workspace::NewTab` (`Cmd-T`, the + button, or File > New Tab) opens and activates a new tab. Clicking a tab activates it. `workspace::CloseTab` (`Cmd-W` or File > Close Tab) closes the active tab and activates the most recently active remaining tab; closing the only tab closes the window, which quits the app. The titlebar close button closes the window regardless of how many tabs are open.
 
-The sidebar renders a static list of sections and entries. Selecting an entry and expanding or collapsing a folder change only sidebar state; entries do not open tabs yet. Icons are Lucide SVGs embedded at compile time from `assets/icons`, which also holds their license.
+The sidebar renders a static list of sections and entries. Selecting an entry and expanding or collapsing a folder change only sidebar state; entries do not open tabs yet. Hovering the Browser section header reveals a + button that opens a "새로 만들기" menu with Note and Folder items. Choosing an item, pressing `Escape`, or clicking anywhere outside closes the menu and returns focus to where it was; creating notes and folders is not implemented yet. Icons are Lucide SVGs embedded at compile time from `assets/icons`, which also holds their license.
+
+`menu.rs` provides the popover used by that menu: a window-wide backdrop that dismisses on any mouse down and blocks the elements beneath it, the menu positioned relative to its trigger and kept inside the window, and shared container, header, and item styling. The popover's content has the `Menu` key context, so `menu::Dismiss` applies only while a menu has focus.
 
 ## Keyboard shortcuts
 
 Shortcuts are data, not code. `keymap::DEFAULT_BINDINGS` lists each binding as a keystroke sequence, a registered action name such as `workspace::NewTab`, and an optional key context. At startup `keymap::load` resolves names with GPUI's action registry, parses contexts, and binds the result; an unknown action name, keystroke, or context is an error rather than a silently missing shortcut. macOS menu items show their shortcuts from the same bindings.
 
-To add a shortcut, declare the action with `actions!` in the module that handles it, handle it on the element that owns the behavior, and add one row to the table. Use the `Workspace` context for window-level commands; a panel that needs its own shortcuts sets its own `key_context` so its bindings apply only while it has focus. User keymap files or plugin bindings can later be parsed into the same `Binding` form and loaded after the defaults; GPUI gives later bindings precedence.
+To add a shortcut, declare the action with `actions!` in the module that handles it, handle it on the element that owns the behavior, and add one row to the table. Use the `Workspace` context for window-level commands and `Menu` for commands inside an open menu; a panel that needs its own shortcuts sets its own `key_context` so its bindings apply only while it has focus. User keymap files or plugin bindings can later be parsed into the same `Binding` form and loaded after the defaults; GPUI gives later bindings precedence.
 
 The dependency is the official `gpui` crate pinned to `0.2.2`, with resolved dependencies committed in the root lockfile. GPUI Kit and its script runtime are not dependencies. Their current release line uses a different GPUI package/version; adopting them requires an explicit compatibility decision rather than mixing the two into this scaffold.
 
@@ -66,6 +68,7 @@ apps/desktop/
     ├── app.rs          # Window and dependency composition
     ├── assets.rs       # Embedded asset source and icon names
     ├── keymap.rs       # Default key bindings and binding loader
+    ├── menu.rs         # Popover menu, dismiss action, and menu styling
     ├── theme.rs        # Appearance-dependent colors
     ├── workspace.rs    # Tabs, tab actions, and window layout
     ├── sidebar.rs      # Static navigation sidebar
@@ -86,7 +89,7 @@ Implement a window and one built-in panel first, then a second panel using the s
 
 ## Verification plan
 
-Unit tests use GPUI's test platform to check that the default bindings resolve, that unknown actions are rejected, and that `Cmd-T`/`Cmd-W` open and close tabs, return to the most recently active tab, and close the window after the last tab. A real macOS launch is still needed for appearance, resizing, focus after clicks, the titlebar close button, and `Cmd-Q`. The following checks cover planned panel-management behavior and have not been run.
+Unit tests use GPUI's test platform to check that the default bindings resolve, that unknown actions are rejected, and that `Cmd-T`/`Cmd-W` open and close tabs, return to the most recently active tab, and close the window after the last tab. Another test opens the sidebar's new menu by clicking and closes it with `Escape`, an item, an outside click, and the + button, checking that focus returns to Workspace. A real macOS launch is still needed for appearance, resizing, focus after clicks, the titlebar close button, and `Cmd-Q`. The following checks cover planned panel-management behavior and have not been run.
 
 - Switch between two built-in panels and verify state preservation and focus changes. Confirm that adding a panel requires only its implementation and registration, without modifying existing panels.
 - Confirm that duplicate registration, unknown kinds, and creation failures do not change open panels or active state.
