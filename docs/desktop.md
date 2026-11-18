@@ -1,16 +1,26 @@
 # Minimal Desktop Design
 
-The scaffold in `apps/desktop` is a single GPUI app targeting macOS first. It opens one window, mounts one built-in panel, and exits when the last window closes or the user quits. The editor, storage, CloudKit, agents, CLI/MCP, and JS runtime are subsequent features.
+The scaffold in `apps/desktop` is a single GPUI app targeting macOS first. It opens one window with a sidebar and a tab bar, hosts one panel per tab, and exits when the last window closes or the user quits. The editor, storage, CloudKit, agents, CLI/MCP, and JS runtime are subsequent features.
 
 ## Implemented boundary
 
-`App` configures the window, menus, shutdown behavior, and the embedded asset source. The window uses a transparent titlebar so the sidebar extends under the traffic lights. `Workspace` lays out a fixed-width sidebar beside an `AnyView` created by the `PanelFactory` registered as `panels::DEFAULT_PANEL`, and refreshes the window when the system appearance changes. Views read their colors from `Theme::of(window)`.
+`App` configures the window, menus, shutdown behavior, and the embedded asset source. The window uses a transparent titlebar so the sidebar extends under the traffic lights. `Workspace` lays out a fixed-width sidebar beside a tab bar and the active tab's panel, and refreshes the window when the system appearance changes. Views read their colors from `Theme::of(window)`.
 
-The sidebar renders a static list of sections and entries. Selecting an entry and expanding or collapsing a folder change only sidebar state; entries do not open panels yet. Icons are Lucide SVGs embedded at compile time from `assets/icons`, which also holds their license. The factory accepts the window and app context so later panels can create their own GPUI entities without exposing their concrete types to Workspace.
+Each tab holds a `Panel`, a title plus an `AnyView`, created by the `PanelFactory` registered as `panels::DEFAULT_PANEL`; currently that is an empty panel titled "새 탭". The factory accepts the window and app context so later panels can create their own GPUI entities without exposing their concrete types to Workspace. Inactive tabs keep their views, so panel state survives switching.
+
+`workspace::NewTab` (`Cmd-T`, the + button, or File > New Tab) opens and activates a new tab. Clicking a tab activates it. `workspace::CloseTab` (`Cmd-W` or File > Close Tab) closes the active tab and activates the most recently active remaining tab; closing the only tab closes the window, which quits the app. The titlebar close button closes the window regardless of how many tabs are open.
+
+The sidebar renders a static list of sections and entries. Selecting an entry and expanding or collapsing a folder change only sidebar state; entries do not open tabs yet. Icons are Lucide SVGs embedded at compile time from `assets/icons`, which also holds their license.
+
+## Keyboard shortcuts
+
+Shortcuts are data, not code. `keymap::DEFAULT_BINDINGS` lists each binding as a keystroke sequence, a registered action name such as `workspace::NewTab`, and an optional key context. At startup `keymap::load` resolves names with GPUI's action registry, parses contexts, and binds the result; an unknown action name, keystroke, or context is an error rather than a silently missing shortcut. macOS menu items show their shortcuts from the same bindings.
+
+To add a shortcut, declare the action with `actions!` in the module that handles it, handle it on the element that owns the behavior, and add one row to the table. Use the `Workspace` context for window-level commands; a panel that needs its own shortcuts sets its own `key_context` so its bindings apply only while it has focus. User keymap files or plugin bindings can later be parsed into the same `Binding` form and loaded after the defaults; GPUI gives later bindings precedence.
 
 The dependency is the official `gpui` crate pinned to `0.2.2`, with resolved dependencies committed in the root lockfile. GPUI Kit and its script runtime are not dependencies. Their current release line uses a different GPUI package/version; adopting them requires an explicit compatibility decision rather than mixing the two into this scaffold.
 
-There is no dynamic registry, panel switching, background task, or persistence yet. The contracts below are the target for those additions; the first scaffold deliberately implements only a single factory slot. Run and verification commands are in the [README](../README.md#development).
+There is no dynamic registry, panel kind selection, background task, or persistence yet. The contracts below are the target for those additions; tabs currently use a single factory slot. Run and verification commands are in the [README](../README.md#development).
 
 ## Usage contract
 
@@ -20,7 +30,7 @@ There is no dynamic registry, panel switching, background task, or persistence y
 | Switch panels | Select an open instance to change the active panel | An unknown instance returns an error. Existing panel state is preserved |
 | Close a panel | Remove an instance and clean up its subscriptions and tasks | Closing an already closed instance has no effect. Late results cannot revive it |
 
-Initially, display one panel at a time. Multiple panels can retain their state, but tabs, splits, and docking UI are added only when needed. Opening the same panel kind again initially activates its existing instance.
+Each tab displays one panel instance, and one tab is active at a time. Opening a new tab always creates a new instance. Splits and docking UI are added only when needed.
 
 ## Selected structure
 
@@ -55,12 +65,13 @@ apps/desktop/
     ├── main.rs         # Entry point
     ├── app.rs          # Window and dependency composition
     ├── assets.rs       # Embedded asset source and icon names
+    ├── keymap.rs       # Default key bindings and binding loader
     ├── theme.rs        # Appearance-dependent colors
-    ├── workspace.rs    # Sidebar and panel layout, window close action
+    ├── workspace.rs    # Tabs, tab actions, and window layout
     ├── sidebar.rs      # Static navigation sidebar
     └── panels/
-        ├── mod.rs      # Panel factory type and default registration
-        └── home.rs     # Built-in Home panel
+        ├── mod.rs      # Panel type, factory type, and default registration
+        └── blank.rs    # Empty panel for new tabs
 ```
 
 Do not create a crate for every feature. Keep registrations in one place rather than maintaining a duplicate command list. Do not introduce a general-purpose event bus, service container, empty platform adapters, or separate daemon initially. Keep Workspace internals private to its module and allow panel mutations only through open, activate, and close operations.
@@ -75,7 +86,7 @@ Implement a window and one built-in panel first, then a second panel using the s
 
 ## Verification plan
 
-The following checks cover the planned panel-management behavior and have not been run. The current scaffold requires a real macOS launch, appearance and resize inspection, and verification of titlebar close, `Cmd-W`, and `Cmd-Q`; no automated behavioral suite exists yet.
+Unit tests use GPUI's test platform to check that the default bindings resolve, that unknown actions are rejected, and that `Cmd-T`/`Cmd-W` open and close tabs, return to the most recently active tab, and close the window after the last tab. A real macOS launch is still needed for appearance, resizing, focus after clicks, the titlebar close button, and `Cmd-Q`. The following checks cover planned panel-management behavior and have not been run.
 
 - Switch between two built-in panels and verify state preservation and focus changes. Confirm that adding a panel requires only its implementation and registration, without modifying existing panels.
 - Confirm that duplicate registration, unknown kinds, and creation failures do not change open panels or active state.

@@ -4,13 +4,13 @@ Mano is a local-first note-taking app combining Markdown documents, structured p
 
 ## Start with a small desktop app
 
-The single Rust/GPUI app in `apps/desktop` targets macOS first. It currently opens one window with a static sidebar and mounts one built-in panel through a factory. Panel switching and a dynamic registry are deferred until additional panels need them.
+The single Rust/GPUI app in `apps/desktop` targets macOS first. It currently opens one window with a static sidebar and tabs, each hosting a panel created through a factory. Keyboard shortcuts are declared as data that maps keystrokes to named actions. A dynamic panel registry is deferred until additional panel kinds need it.
 
 - **App:** Application startup and shutdown, window creation, and dependency wiring.
 - **Workspace:** Panel registration, open instances, active state, and opening and closing panels.
 - **Panel:** Its own view state, focus, subscriptions, and tasks.
 
-The current registration point is `panels::DEFAULT_PANEL`, a factory returning GPUI's `AnyView`; Workspace does not depend on the concrete panel. The responsibilities listed above describe the intended expansion. JS plugins can later connect through an adapter at this boundary. When panel tasks are introduced, closing a panel must clean them up and prevent late results from being applied.
+The current registration point is `panels::DEFAULT_PANEL`, a factory returning a titled GPUI `AnyView`; Workspace does not depend on the concrete panel. The responsibilities listed above describe the intended expansion. JS plugins can later connect through an adapter at this boundary. When panel tasks are introduced, closing a panel must clean them up and prevent late results from being applied.
 
 ## Data and extension boundaries
 

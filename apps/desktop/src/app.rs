@@ -1,23 +1,35 @@
 use gpui::{
-    App, AppContext, Application, Bounds, KeyBinding, Menu, MenuItem, TitlebarOptions,
-    WindowBounds, WindowOptions, actions, point, px, size,
+    App, AppContext, Application, Bounds, Menu, MenuItem, TitlebarOptions, WindowBounds,
+    WindowOptions, actions, point, px, size,
 };
 
-use crate::{assets::Assets, panels, workspace::Workspace};
+use crate::{
+    assets::Assets,
+    keymap, panels,
+    workspace::{CloseTab, NewTab, Workspace},
+};
 
-actions!(mano, [Quit, CloseWindow]);
+actions!(app, [Quit]);
 
 pub fn run() {
     Application::new().with_assets(Assets).run(|cx: &mut App| {
-        cx.bind_keys([
-            KeyBinding::new("cmd-q", Quit, None),
-            KeyBinding::new("cmd-w", CloseWindow, None),
-        ]);
+        let bindings =
+            keymap::load(keymap::DEFAULT_BINDINGS, cx).expect("the default keymap is invalid");
+        cx.bind_keys(bindings);
         cx.on_action(|_: &Quit, cx| cx.quit());
-        cx.set_menus(vec![Menu {
-            name: "Mano".into(),
-            items: vec![MenuItem::action("Quit Mano", Quit)],
-        }]);
+        cx.set_menus(vec![
+            Menu {
+                name: "Mano".into(),
+                items: vec![MenuItem::action("Quit Mano", Quit)],
+            },
+            Menu {
+                name: "File".into(),
+                items: vec![
+                    MenuItem::action("New Tab", NewTab),
+                    MenuItem::action("Close Tab", CloseTab),
+                ],
+            },
+        ]);
         cx.on_window_closed(|cx| {
             if cx.windows().is_empty() {
                 cx.quit();

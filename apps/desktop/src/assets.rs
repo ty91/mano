@@ -35,6 +35,7 @@ icons! {
     Image => "image",
     LayoutGrid => "layout-grid",
     Notebook => "notebook",
+    Plus => "plus",
     Search => "search",
     Settings => "settings",
     Smile => "smile",

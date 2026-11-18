@@ -1,7 +1,12 @@
-mod home;
+mod blank;
 
-use gpui::{AnyView, App, Window};
+use gpui::{AnyView, App, SharedString, Window};
 
-pub type PanelFactory = fn(&mut Window, &mut App) -> AnyView;
+pub struct Panel {
+    pub title: SharedString,
+    pub view: AnyView,
+}
 
-pub const DEFAULT_PANEL: PanelFactory = home::create;
+pub type PanelFactory = fn(&mut Window, &mut App) -> Panel;
+
+pub const DEFAULT_PANEL: PanelFactory = blank::create;
